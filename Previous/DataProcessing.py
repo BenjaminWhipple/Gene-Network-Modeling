@@ -51,7 +51,7 @@ IFN_Gamma_MOCK_PR8.rename(index=IFN_Gamma_MOCK_PR8_map, inplace=True)
 IFN_Gamma_RV_PR8_map = make_index_map(IFN_Gamma_RV_PR8.index)
 IFN_Gamma_RV_PR8.rename(index=IFN_Gamma_RV_PR8_map, inplace=True)
 
-IFN_Alpha_MOCK_PR8.to_csv("ProcessedData/IFN-Alpha_Mock-PR8")
+IFN_Alpha_MOCK_PR8.to_csv("ProcessedData/IFN-Alpha_Mock-PR8.csv")
 IFN_Alpha_RV_PR8.to_csv("ProcessedData/IFN-Alpha_RV-PR8")
 IFN_Gamma_MOCK_PR8.to_csv("ProcessedData/IFN-Gamma_Mock-PR8")
 IFN_Gamma_RV_PR8.to_csv("ProcessedData/IFN-Gamma_RV-PR8")
