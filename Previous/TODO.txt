@@ -1,0 +1,4 @@
+[] Overall goal: 
+	[] Make a deployable script which can be used with an arbitrary gene list and time coded columns, resulting in gp surrogates across desired time and resolution.
+	[C] Model genes for this week
+	[C] Make images of genes for this week, comparing between groups.
