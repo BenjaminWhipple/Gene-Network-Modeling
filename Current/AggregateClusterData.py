@@ -40,7 +40,7 @@ for group in GenesByCluster:
 		RV_PR8_TEMP.append(temp2)
 
 	temp_df = pd.DataFrame(data=np.vstack(MOCK_PR8_TEMP),columns=["Day",f"Cluster_{idx}_Expression"])
-	temp_df.to_csv(f"ProcessedData/ClusterMeasurements/MOCK_PR8_Cluster_{idx}_Measurements")
+	temp_df.to_csv(f"ProcessedData/ClusterMeasurements/MOCK_PR8_Cluster_{idx}_Measurements.csv")
 
 	temp_df = pd.DataFrame(data=np.vstack(RV_PR8_TEMP),columns=["Day",f"Cluster_{idx}_Expression"])
-	temp_df.to_csv(f"ProcessedData/ClusterMeasurements/RV_PR8_Cluster_{idx}_Measurements")
+	temp_df.to_csv(f"ProcessedData/ClusterMeasurements/RV_PR8_Cluster_{idx}_Measurements.csv")
