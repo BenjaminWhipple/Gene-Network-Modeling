@@ -21,7 +21,6 @@ Clusters = np.unique(ClusterCrosswalk["Cluster"])
 GenesByCluster = []
 
 # FOR REFACTOR: MERGE FOLLOWING LOOPS.
-
 # Create cluster number, gene list pairs.
 for i in Clusters:
 	temp = ClusterCrosswalk[ClusterCrosswalk["Cluster"]==i]

@@ -23,7 +23,7 @@ from sklearn.gaussian_process.kernels import Matern, WhiteKernel
 
 # We will use N=1000 for computing the mean of the trajectory
 NSAMPLES = 1000
-EPS = 1e-3
+EPS = 1e0
 t = np.linspace(0,6,61)[:,np.newaxis]
 
 # Load cluster crosswalk

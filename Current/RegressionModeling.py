@@ -7,7 +7,11 @@ INPUTS:
     
 
 OUTPUTS:
-    
+
+
+NOTES:
+This file violates DRY fairly heavily. 
+Refactoring would convert the main for loop into a function. 
 """
 import scipy
 import matplotlib.pyplot as plt
@@ -17,44 +21,122 @@ import time
 import dill as pickle
 
 
-# Load cluster crosswalk
-CROSSWALK = pd.read_csv("ProcessedData/Cluster_Crosswalk.csv")
-# Determine number of clusters
-CLUSTERS = np.sort(np.unique(CROSSWALK["Cluster"]))
-print(CLUSTERS)
-
+# Define globals
 t = np.linspace(0,6,61)[:,np.newaxis]
 
-mock_splines = []
-rv_splines = []
+# Load Cluster Crosswalk
+CROSSWALK = pd.read_csv("ProcessedData/Cluster_Crosswalk.csv")
+CLUSTERS = np.sort(np.unique(CROSSWALK["Cluster"]))
+
+# Load GP Samples from Cluster Data
+mock_data = []
+rv_data = []
 
 for i in CLUSTERS:
+    mock_data_i = np.loadtxt(f"SerializedObjects/ClusterGPPredicts/MOCK_PR8_CLUSTER_{i}_GP_PREDICTS.csv",delimiter=",")
+    rv_data_i = np.loadtxt(f"SerializedObjects/ClusterGPPredicts/RV_PR8_CLUSTER_{i}_GP_PREDICTS.csv",delimiter=",")
+
+    mock_data.append(mock_data_i)
+    rv_data.append(rv_data_i)
+
+
+# Conduct estimation procedure
+NSAMPLES = mock_data[0].shape[1]
+#NSAMPLES = 3
+
+mock_coefficients = []
+mock_predictions = []
+mock_solution_predictions = []
+
+rv_coefficients = []
+rv_predictions = []
+rv_solution_predictions = []
+
+for i in range(NSAMPLES):
     print(i)
-    with open(f"SerializedObjects/MeanSplines/MOCK_PR8_CLUSTER_{i}_SPLINE.pkl",'rb') as f:
-       mock_spline = pickle.load(f)
+    mock_splines = []
+    rv_splines = []
 
-    with open(f"SerializedObjects/MeanSplines/RV_PR8_CLUSTER_{i}_SPLINE.pkl",'rb') as f:
-       rv_spline = pickle.load(f)
+    # Compute splines. 
+    for j in CLUSTERS:
+        # Select data
+        mock_data_j = mock_data[j][:,i]
+        rv_data_j = rv_data[j][:,i]
 
-    mock_splines.append(mock_spline)
-    rv_splines.append(rv_spline)
+        # Spline interpolation
+        mock_spline_j = scipy.interpolate.CubicSpline(t.flatten(),mock_data_j)
+        rv_spline_j = scipy.interpolate.CubicSpline(t.flatten(),rv_data_j)
 
-print("done")
+        mock_splines.append(mock_spline_j)
+        rv_splines.append(rv_spline_j)
 
-nums = [int(i) for i in CLUSTERS]
+    # Aggregate observations and derivatives
+    mock_preds = [mock_splines[k](t) for k in CLUSTERS]
+    mock_derivs = [mock_splines[k].derivative(1)(t) for k in CLUSTERS]
+    mock_preds = np.hstack(mock_preds)
+    mock_derivs = np.hstack(mock_derivs)
 
-mock_preds = [mock_splines[i](t) for i in CLUSTERS]
-mock_derivs = [mock_splines[i].derivative(1)(t) for i in CLUSTERS]
+    rv_preds = [rv_splines[k](t) for k in CLUSTERS]
+    rv_derivs = [rv_splines[k].derivative(1)(t) for k in CLUSTERS]
+    rv_preds = np.hstack(rv_preds)
+    rv_derivs = np.hstack(rv_derivs)
 
-mock_preds = np.hstack(mock_preds)
-mock_derivs = np.hstack(mock_derivs)
+    # Compute coefficients and predictions
+    this_mock_coeffs = []
+    this_mock_pred = []
+    this_mock_soln = []
 
-for i in CLUSTERS:
-    coeffs = np.linalg.pinv(mock_preds.T @ mock_preds) @ mock_preds.T @ mock_derivs[:,i]
-    mock_prediction = mock_preds @ coeffs
+    this_rv_coeffs = []
+    this_rv_pred = []
+    this_rv_soln = []
 
-    plt.figure()
-    plt.plot(t, mock_prediction, label="Predicted")
-    plt.plot(t, mock_derivs[:,i], label="Actual")
-    plt.legend()
-    plt.savefig(f"temp/test_{i}.png")
+    for j in CLUSTERS:
+        mock_coeffs_j = np.linalg.pinv(mock_preds.T @ mock_preds) @ mock_preds.T @ mock_derivs[:,j]
+        mock_prediction_j = mock_preds @ mock_coeffs_j
+        mock_soln_j = np.cumsum(mock_prediction_j*(t[1]-t[0]))+mock_preds[0,j]
+
+        rv_coeffs_j = np.linalg.pinv(rv_preds.T @ rv_preds) @ rv_preds.T @ rv_derivs[:,j]
+        rv_prediction_j = rv_preds @ rv_coeffs_j
+        rv_soln_j = np.cumsum(rv_prediction_j*(t[1]-t[0]))+rv_preds[0,j]
+
+        this_mock_coeffs.append(mock_coeffs_j)
+        this_mock_pred.append(mock_prediction_j)
+        this_mock_soln.append(mock_soln_j)
+
+        this_rv_coeffs.append(rv_coeffs_j)
+        this_rv_pred.append(rv_prediction_j)
+        this_rv_soln.append(mock_soln_j)
+
+    this_mock_coeffs = np.vstack(this_mock_coeffs)
+    this_mock_pred = np.vstack(this_mock_pred)
+    this_mock_soln = np.vstack(this_mock_soln)
+    
+    this_rv_coeffs = np.vstack(this_rv_coeffs)
+    this_rv_pred = np.vstack(this_rv_pred)
+    this_rv_soln = np.vstack(this_rv_soln)    
+
+    mock_coefficients.append(this_mock_coeffs)
+    mock_predictions.append(this_mock_pred)
+    mock_solution_predictions.append(this_mock_soln)
+    
+    rv_coefficients.append(this_rv_coeffs)
+    rv_predictions.append(this_rv_pred)
+    rv_solution_predictions.append(this_rv_soln)
+
+print(mock_coefficients[0])
+print(rv_coefficients[0])
+
+# Write results to files
+with open("SerializedObjects/EstimationResults/MOCK_PR8_PREDICTIONS.pkl",'wb') as f:
+    pickle.dump(mock_predictions, f)
+with open("SerializedObjects/EstimationResults/MOCK_PR8_SOLUTIONS.pkl",'wb') as f:
+    pickle.dump(mock_solution_predictions, f)
+with open("SerializedObjects/EstimationResults/MOCK_PR8_COEFFICIENTS.pkl",'wb') as f:
+    pickle.dump(mock_coefficients, f)
+
+with open("SerializedObjects/EstimationResults/RV_PR8_PREDICTIONS.pkl",'wb') as f:
+    pickle.dump(rv_predictions, f)
+with open("SerializedObjects/EstimationResults/RV_PR8_SOLUTIONS.pkl",'wb') as f:
+    pickle.dump(rv_solution_predictions, f)
+with open("SerializedObjects/EstimationResults/RV_PR8_COEFFICIENTS.pkl",'wb') as f:
+    pickle.dump(rv_coefficients, f)
