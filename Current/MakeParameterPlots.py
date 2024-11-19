@@ -1,15 +1,3 @@
-"""
-ABOUT:
-
-
-INPUTS:
-    
-
-OUTPUTS:
-
-
-"""
-
 import scipy
 import matplotlib.pyplot as plt
 import seaborn as sns
@@ -18,15 +6,6 @@ import pandas as pd
 import time
 import dill as pickle
 
-"""
-TODO:
-1. Plot parameter distributions
-2. Plot parameter differences histogram.
-"""
-
-# Determine Global Params
-#CROSSWALK = pd.read_csv("ProcessedData/Cluster_Crosswalk.csv")
-#CLUSTERS = np.sort(np.unique(CROSSWALK["Cluster"]))
 # Load Genes
 genes_list = list(pd.read_csv("OriginalData/NewGenesOfInterest.csv")["Gene Symbol"].str.lower())
 

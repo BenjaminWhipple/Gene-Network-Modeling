@@ -1,16 +1,3 @@
-"""
-INPUTS:
-	Dataframe for Genes of Interest: "OriginalData/Cluster_Crosswalk.csv"
-   Dataframe for Gene expression: "OriginalData/GeneExpressionData_MultipleSamples.tsv"
-
-OUTPUTS:
-	GP models (pickled files): "SerializedObjects/GeneGPs/*.pkl" for general *
-	Spline representation of GP mean: "SerializedObjects/MeanSplines/*.pkl" for general *
-    Diagnostic Images:
-        "Images/DiagnosticImages/GeneGPs/*.png" for general *
-        "Images/DiagnosticImages/Splines/*.png" for general *
-"""
-
 
 import scipy
 import matplotlib.pyplot as plt
@@ -44,7 +31,7 @@ Columns_Of_Interest = list(set(MOCK_PR8_columns+RV_PR8_columns))
 
 
 all_genes = list(gene_data["GeneSymbol"])
-#print(all_genes)
+
 # Get subset of data
 gene_data["GeneSymbol"]=gene_data["GeneSymbol"].str.lower()
 Data_Of_Interest = gene_data[gene_data["GeneSymbol"].isin(genes_list)][Columns_Of_Interest+["GeneSymbol"]]
@@ -96,10 +83,7 @@ for gene in genes_list:
     
     renamed_rv_temp = rv_temp.copy().rename(columns={"GeneSymbol":"Day"}).set_index("Day").transpose()
     rv_temp_map = make_index_map(renamed_rv_temp.index)
-    renamed_rv_temp.rename(index=rv_temp_map, inplace=True)
-
-    #print(renamed_mock_temp.columns)
-    #print(renamed_rv_temp)    
+    renamed_rv_temp.rename(index=rv_temp_map, inplace=True)   
     
     # Prepare data for fitting
     mock_t_col = renamed_mock_temp.index.to_numpy().reshape(-1,1)
@@ -165,22 +149,3 @@ for gene in genes_list:
     #axs[1].ylabel(r"$\log_{10}$ Expression")
     axs[1].set_xlabel("DPI")
     plt.savefig(f"Images/DiagnosticImages/GeneGPs/{gene}_GP.png")
-
-    # Make Spline plots
-    '''
-    plt.figure()
-    plt.title(f"Mock-PR8 Group: {gene} Mean Spline")
-    plt.plot(t,mock_mean_spline(t))
-    plt.plot(mock_t_col,mock_obs_col,linestyle="None",marker="o")
-    plt.ylabel(r"$\log_{10}$ Expression")
-    plt.xlabel("DPI")
-    plt.savefig(f"Images/DiagnosticImages/Splines/MOCK_{gene}_SPLINE.png")
-
-    plt.figure()
-    plt.title(f"RV-PR8 Group: {gene} Mean Spline")
-    plt.plot(t,rv_mean_spline(t))
-    plt.plot(rv_t_col,rv_obs_col,linestyle="None",marker="o")
-    plt.ylabel(r"$\log_{10}$ Expression")
-    plt.xlabel("DPI")
-    plt.savefig(f"Images/DiagnosticImages/Splines/RV_{gene}_SPLINE.png")
-    '''

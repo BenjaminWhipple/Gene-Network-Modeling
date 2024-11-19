@@ -1,18 +1,4 @@
-"""
-ABOUT:
-In this file we try to express the derivative of a spline with respect to the levels of different the splines. 
-That is, we try to model the time evolution for the system as a linear model.
 
-INPUTS:
-    
-
-OUTPUTS:
-
-
-NOTES:
-This file violates DRY fairly heavily. 
-Refactoring would convert the main for loop into a function. 
-"""
 import scipy
 import matplotlib.pyplot as plt
 import numpy as np
