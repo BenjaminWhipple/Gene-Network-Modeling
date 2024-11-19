@@ -1,0 +1,5 @@
+
+We use the list of genes provided by Reagan.
+
+WARS1 is listed as synonymous with WARS on (https://www.informatics.jax.org/marker/MGI:104630 ). WARS is present and not WARS1.
+
